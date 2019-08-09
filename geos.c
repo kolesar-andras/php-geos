@@ -308,6 +308,7 @@ PHP_METHOD(Geometry, relateBoundaryNodeRule);
 
 PHP_METHOD(Geometry, simplify); /* also does topology-preserving */
 PHP_METHOD(Geometry, normalize);
+PHP_METHOD(Geometry, makeValid);
 
 #ifdef HAVE_GEOS_GEOM_SET_PRECISION
 PHP_METHOD(Geometry, setPrecision);
@@ -447,6 +448,7 @@ static zend_function_entry Geometry_methods[] = {
 
     PHP_ME(Geometry, simplify, NULL, 0)
     PHP_ME(Geometry, normalize, NULL, 0)
+    PHP_ME(Geometry, makeValid, NULL, 0)
 
 #   ifdef HAVE_GEOS_GEOM_SET_PRECISION
     PHP_ME(Geometry, setPrecision, NULL, 0)
@@ -1381,6 +1383,23 @@ PHP_METHOD(Geometry, normalize)
     if ( ! ret ) RETURN_NULL();
 
     GEOSNormalize_r(GEOS_G(handle), ret); /* exception should be gotten automatically */
+
+    /* return_value is a zval */
+    object_init_ex(return_value, Geometry_ce_ptr);
+    setRelay(return_value, ret);
+}
+
+/**
+ * GEOSGeometry GEOSGeometry::makeValid()
+ */
+PHP_METHOD(Geometry, makeValid)
+{
+    GEOSGeometry *this;
+    GEOSGeometry *ret;
+
+    this = (GEOSGeometry*)getRelay(getThis(), Geometry_ce_ptr);
+    ret = GEOSMakeValid_r(GEOS_G(handle), this);
+    if ( ! ret ) RETURN_NULL(); /* should get an exception first */
 
     /* return_value is a zval */
     object_init_ex(return_value, Geometry_ce_ptr);
